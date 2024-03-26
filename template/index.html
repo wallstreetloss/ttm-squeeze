@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.11" integrity="sha384-0gxUXCCR8yv9FM2b+U3FDbsKthCI66oH5IA9fHppQq9DDMHuMauqq1ZHBpJxQ0J0" crossorigin="anonymous"></script>
+    </head>
+    <body>
+
+        <form id="myForm">
+          <label for="ticker">Ticker:</label><br>
+          <input type="text" id="ticker" name="ticker"><br>
+          <label for="period">Period:</label><br>
+          <input type="text" id="period" name="period"><br><br>
+          <button type="button" hx-post="/ticker" hx-trigger="click" hx-target="#output">Submit</button>
+        </form>
+        
+        <div id="output" hx-target="#output" hx-swap="innerHTML">
+          <!-- Output will be displayed here -->
+        </div>
+        
+        </body>
+</html>
