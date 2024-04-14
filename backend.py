@@ -9,13 +9,13 @@ app = Flask(__name__, template_folder='template')
 @app.route('/ticker', methods=["POST"])
 def graph_ticker():
     ticker = request.form.get("ticker")
+    ticker = ticker.upper()
     period = request.form.get("period")
     app.logger.info(f'{ticker} {period}')
     df, enter_long, enter_short = squeeze.get_ttm_squeeze(ticker, period)
-    app.logger.info(f'enter long: {enter_long} || enter_short: {enter_short}')
     graph = squeeze.chart(df)
     all_pub_json = dumps(graph, cls=utils.PlotlyJSONEncoder)
-    return render_template('graph.html', graphJSON=all_pub_json)
+    return render_template('graph.html', graphJSON=all_pub_json, ticker=ticker, enter_long=enter_long, enter_short=enter_short)
 
 @app.route('/')
 def index():
