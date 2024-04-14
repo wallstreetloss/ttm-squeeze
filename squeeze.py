@@ -1,18 +1,13 @@
-import os, pandas
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import yfinance as yf
 
-dataframes = {}
-
-for filename in os.listdir('datasets'):
-    #print(filename)
-    symbol = filename.split(".")[0]
-    #print(symbol)
-    df = pandas.read_csv('datasets/{}'.format(filename))
+def get_ttm_squeeze(ticker, period):
+    df = yf.Ticker(ticker).history(period=period)
     if df.empty:
-        continue
-
+        return
+    df['Date'] = df.index
     df['20sma'] = df['Close'].rolling(window=20).mean()
     df['stddev'] = df['Close'].rolling(window=20).std()
     df['lower_band'] = df['20sma'] - (2 * df['stddev'])
@@ -32,28 +27,27 @@ for filename in os.listdir('datasets'):
 
     # Squeeze on/off df
     df['squeeze_on'] = (df['lower_band'] > df['lower_keltner']) & (df['upper_band'] < df['upper_keltner'])
-    df['squeeze_off'] = (df['lower_band'] < df['lower_keltner']) & (df['upper_band'] > df['upper_keltner'])
-
+    squeeze_off = [not x for x in df['squeeze_on']]
     #TODO implement
     # # entry point for long position:
     # # 1. black cross becomes gray (the squeeze is released)
-    # long_cond1 = (df['squeeze_off'][-2] == False) & (df['squeeze_off'][-1] == True) 
+    long_cond1 = (squeeze_off[-2] == False) & (squeeze_off[-1] == True) 
     # # 2. bar value is positive => the bar is light green
-    # long_cond2 = df['value'][-1] > 0
-    # enter_long = long_cond1 and long_cond2
+    long_cond2 = df['histogram_bar'].to_list()[-1] > 0
+    enter_long = long_cond1 and long_cond2
     # # entry point for short position:
     # # 1. black cross becomes gray (the squeeze is released)
-    # short_cond1 = (df['squeeze_off'][-2] == False) & (df['squeeze_off'][-1] == True) 
+    short_cond1 = (squeeze_off[-2] == False) & (squeeze_off[-1] == True) 
     # # 2. bar value is negative => the bar is light red 
-    # short_cond2 = df['value'][-1] < 0
-    # enter_short = short_cond1 and short_cond2
-
+    short_cond2 = df['histogram_bar'].to_list()[-1] < 0
+    enter_short = short_cond1 and short_cond2
+    
     # if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
     #     print("{} is coming out the squeeze".format(symbol))
 
     # save all dataframes to a dictionary
     # we can chart individual names below by calling the chart() function
-    dataframes[symbol] = df
+    return df, enter_long, enter_short
 
 
 def chart(df):
@@ -67,7 +61,7 @@ def chart(df):
     #histogram
     histogram = go.Bar(x=df['Date'], y=df['histogram_bar'], name='Momentum Histogram', marker_color=['red' if val <=0 else 'green' for val in df['histogram_bar']])
     squeeze_on_off = go.Scatter(x=df['Date'], y=[0]*len(df), name='Squeeze on/off dots',marker=dict(
-        color=['grey' if val else 'black' for val in df['squeeze_off']],
+        color=['grey' if not val else 'black' for val in df['squeeze_on']],
         size=5,  # Adjust the marker size as per your requirement
         ), mode='markers')
 
@@ -78,8 +72,4 @@ def chart(df):
 
     subplots.add_trace(histogram, row=2, col=1)
     subplots.add_trace(squeeze_on_off, row=2, col=1)
-
-    subplots.show()
-
-df = dataframes['TSLA']
-chart(df)
+    return subplots

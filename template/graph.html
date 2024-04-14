@@ -1,0 +1,9 @@
+
+<div id='chart' class='chart'”></div>
+<script type='text/javascript'>
+    var graphs = {{graphJSON | safe}};
+    Plotly.plot('chart',graphs,{});
+</script>
+<div id='report'>
+    {{ticker}} enter long: <i>{{enter_long}}</i> || enter short: <i>{{enter_short}}</i>
+</div>

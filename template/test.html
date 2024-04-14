@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTMX Example</title>
+  <script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.min.js"></script>
+</head>
+<body>
+
+<form id="myForm">
+  <label for="ticker">Ticker:</label><br>
+  <input type="text" id="ticker" name="ticker"><br>
+  <label for="email">Period:</label><br>
+  <input type="text" id="period" name="ticker"><br><br>
+  <button type="button" hx-post="/ticker" hx-trigger="click" hx-target="#output">Submit</button>
+</form>
+
+<div id="output" hx-target="#output" hx-swap="outerHTML">
+  <!-- Output will be displayed here -->
+</div>
+
+</body>
+</html>
